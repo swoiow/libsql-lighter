@@ -1,2 +1,1 @@
 pandas>=2.0
-https://github.com/swoiow/libsql-py/releases/download/released/libsql-0.1.11-cp312-cp312-win_amd64.whl

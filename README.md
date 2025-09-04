@@ -1,4 +1,4 @@
-# libsql-adapter
+# libsql-lighter
 
 A lightweight adapter for bridging **pandas DataFrame** with **libsql**.
 
@@ -12,7 +12,7 @@ A lightweight adapter for bridging **pandas DataFrame** with **libsql**.
 
 ```python
 import pandas as pd
-from libsql_adapter import write_df_commit_sync, read_sql_df
+from libsql_lighter import write_df_commit_sync, read_sql_df
 
 df = pd.DataFrame({"id": [1, 2], "name": ["Alice", "Bob"]})
 
