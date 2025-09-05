@@ -1,0 +1,73 @@
+name: Build, Package and Release libsql-lighter
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        python-version: [3.10, 3.12, 3.13]  # 设置 Python 版本矩阵
+
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v3  # 使用最新版本的 actions/checkout
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4  # 使用最新版本的 actions/setup-python
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install setuptools wheel
+
+      - name: Build the package
+        run: |
+          python setup.py sdist bdist_wheel
+
+      - name: Upload the package as artifact
+        uses: actions/upload-artifact@v3  # 使用最新版本的 actions/upload-artifact
+        with:
+          name: libsql-lighter-package
+          path: dist/*
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v3  # 使用最新版本的 actions/checkout
+
+      - name: Create GitHub Release
+        id: create_release
+        uses: gh-actions/create-release@v1  # 更新为最新的 GitHub Release action
+        with:
+          tag_name: v${{ github.run_number }}
+          release_name: "Release v${{ github.run_number }}"
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload .whl artifacts to GitHub Release
+        uses: gh-actions/upload-release-asset@v1  # 更新为最新的上传 Release 资源的 action
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: dist/*  # Assumes the wheel files are in the 'dist' folder
+          asset_name: libsql-lighter-${{ github.run_number }}.whl
+          asset_content_type: application/zip
+
+      - name: Delete old releases (keep only the latest)
+        uses: peter-evans/delete-release-asset@v2  # 更新为最新的删除 Release 资源的 action
+        with:
+          tag_name: v${{ github.run_number }}
+          delete_old_releases: true
